@@ -43,12 +43,27 @@ app.get("/info", (req, res) => {
             <p>${new Date()}</p>`);
 });
 
-app.delete('/api/persons/:id', (req, res) => {
-    const id = req.params.id
-    persons = persons.filter(person => person.id !== id)
+app.post("/api/persons", (req, res) => {
+  const body = req.body;
+  const id = Math.floor(Math.random() * 1000);
 
-    res.status(204).end()
-})
+  const person = {
+    name: body.name,
+    number: body.number,
+    id: id,
+  };
+
+  persons = persons.concat(person);
+
+  res.json(person);
+});
+
+app.delete("/api/persons/:id", (req, res) => {
+  const id = req.params.id;
+  persons = persons.filter((person) => person.id !== id);
+
+  res.status(204).end();
+});
 
 const PORT = 3001;
 app.listen(PORT, () => {
