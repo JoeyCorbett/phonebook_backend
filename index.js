@@ -28,6 +28,7 @@ let persons = [
 
 app.get("/api/persons", (req, res) => {
   res.json(persons);
+  console.log(persons);
 });
 
 app.get("/api/persons/:id", (req, res) => {
@@ -45,7 +46,19 @@ app.get("/info", (req, res) => {
 
 app.post("/api/persons", (req, res) => {
   const body = req.body;
-  const id = Math.floor(Math.random() * 1000);
+  const id = String(Math.floor(Math.random() * 1000));
+
+  if (!body.name || !body.number) {
+    return res.status(400).json({
+      error: "name or number missing",
+    });
+  }
+
+  if (persons.find((person) => person.name === body.name)) {
+    return res.status(400).json({
+      error: "name must be unique",
+    });
+  }
 
   const person = {
     name: body.name,
