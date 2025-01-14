@@ -51,8 +51,10 @@ app.get("/api/persons/:id", (req, res, next) => {
 })
 
 app.get("/info", (req, res) => {
-  res.send(`<p>Phonebook has info for ${persons.length}</p>
-            <p>${new Date()}</p>`)
+  Person.find({}).then(people => {
+    res.send(`<p>Phonebook has info for ${people.length}</p>
+              <p>${new Date()}</p>`)
+  })
 })
 
 app.post("/api/persons", (req, res) => {
