@@ -1,75 +1,90 @@
-const express = require("express");
-const app = express();
-require("dotenv").config();
+const express = require("express")
+const app = express()
+require("dotenv").config()
 
-const Person = require("./models/person");
+const Person = require("./models/person")
 
-let persons = [];
+let persons = []
 
-app.use(express.static("dist"));
+app.use(express.static("dist"))
 
-const morgan = require("morgan");
-const cors = require("cors");
+const errorHandler = (error, req, res, next) => {
+  console.log(error.message)
 
-app.use(cors());
+  if (error.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
+const morgan = require("morgan")
+const cors = require("cors")
+
+app.use(cors())
 
 morgan.token("body", function (req, res) {
-  return JSON.stringify(req.body);
-});
+  return JSON.stringify(req.body)
+})
 
-app.use(express.json());
+app.use(express.json())
 app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms :body")
-);
+)
 
 app.get("/api/persons", (req, res) => {
   Person.find({}).then((people) => {
-    res.json(people);
-  });
-});
+    res.json(people)
+  })
+})
 
-app.get("/api/persons/:id", (req, res) => {
-  Person.findById(req.params.id).then((person) => {
-    res.json(person);
-  });
-});
+app.get("/api/persons/:id", (req, res, next) => {
+  Person.findById(req.params.id)
+    .then((person) => {
+      if (person) {
+        res.json(person)
+      } else {
+        res.status(404).end()
+      }
+    })
+    .catch(error => next(error))
+})
 
 app.get("/info", (req, res) => {
   res.send(`<p>Phonebook has info for ${persons.length}</p>
-            <p>${new Date()}</p>`);
-});
+            <p>${new Date()}</p>`)
+})
 
 app.post("/api/persons", (req, res) => {
-  const body = req.body;
+  const body = req.body
 
   if (!body.name || !body.number) {
     return res.status(400).json({
       error: "name or number missing",
-    });
+    })
   }
 
   const person = new Person({
     name: body.name,
     number: body.number,
-  });
+  })
 
   person.save().then((savedPerson) => {
-    res.json(savedPerson);
-  });
-});
+    res.json(savedPerson)
+  })
+})
 
-app.delete("/api/persons/:id", (req, res) => {
+app.delete("/api/persons/:id", (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
   .then(result => {
     res.status(204).end()
   })
-  .catch(error => {
-    console.log(error)
-    res.status(500).end()
-  })
-});
+  .catch(error => next(error))
+})
 
-const PORT = process.env.PORT;
+app.use(errorHandler)
+
+const PORT = process.env.PORT
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  console.log(`Server running on port ${PORT}`)
+})
