@@ -1,12 +1,10 @@
-const express = require("express")
+const express = require('express')
 const app = express()
-require("dotenv").config()
+require('dotenv').config()
 
-const Person = require("./models/person")
+const Person = require('./models/person')
 
-let persons = []
-
-app.use(express.static("dist"))
+app.use(express.static('dist'))
 
 const errorHandler = (error, req, res, next) => {
   console.log(error.message)
@@ -20,27 +18,27 @@ const errorHandler = (error, req, res, next) => {
   next(error)
 }
 
-const morgan = require("morgan")
-const cors = require("cors")
+const morgan = require('morgan')
+const cors = require('cors')
 
 app.use(cors())
 
-morgan.token("body", function (req, res) {
+morgan.token('body', function (req) {
   return JSON.stringify(req.body)
 })
 
 app.use(express.json())
 app.use(
-  morgan(":method :url :status :res[content-length] - :response-time ms :body")
+  morgan(':method :url :status :res[content-length] - :response-time ms :body')
 )
 
-app.get("/api/persons", (req, res) => {
+app.get('/api/persons', (req, res) => {
   Person.find({}).then((people) => {
     res.json(people)
   })
 })
 
-app.get("/api/persons/:id", (req, res, next) => {
+app.get('/api/persons/:id', (req, res, next) => {
   Person.findById(req.params.id)
     .then((person) => {
       if (person) {
@@ -52,19 +50,19 @@ app.get("/api/persons/:id", (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.get("/info", (req, res) => {
+app.get('/info', (req, res) => {
   Person.find({}).then(people => {
     res.send(`<p>Phonebook has info for ${people.length}</p>
               <p>${new Date()}</p>`)
   })
 })
 
-app.post("/api/persons", (req, res, next) => {
+app.post('/api/persons', (req, res, next) => {
   const body = req.body
 
   if (!body.name || !body.number) {
     return res.status(400).json({
-      error: "name or number missing",
+      error: 'name or number missing',
     })
   }
 
@@ -76,10 +74,10 @@ app.post("/api/persons", (req, res, next) => {
   person.save().then((savedPerson) => {
     res.json(savedPerson)
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 })
 
-app.put("/api/persons/:id", (req, res, next) => {
+app.put('/api/persons/:id', (req, res, next) => {
   const { name, number } = req.body
 
   Person.findByIdAndUpdate(
@@ -93,12 +91,12 @@ app.put("/api/persons/:id", (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.delete("/api/persons/:id", (req, res, next) => {
+app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
-  .then(result => {
-    res.status(204).end()
-  })
-  .catch(error => next(error))
+    .then(() => {
+      res.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
 app.use(errorHandler)
